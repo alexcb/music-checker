@@ -1,6 +1,6 @@
 CC=gcc
-CCFLAGS=-std=gnu11 -Wall -Werror -I./src `./use-pi-def.sh` -DDEBUG_BUILD=1
-LDFLAGS=-lmpg123 -lmicrohttpd -lpthread -lm -ljson-c -lttspico -lssl -lcrypto `./use-pi-lib.sh`
+CCFLAGS=-std=gnu11 -Wall -Werror -I./src -DDEBUG_BUILD=1
+LDFLAGS=-lmpg123 -lpthread -lm
 
 SRC=$(wildcard src/**/*.c src/*.c)
 OBJ=$(SRC:%.c=%.o)
@@ -10,12 +10,9 @@ TESTOBJ=$(TESTSRC:%.c=%.o)
 
 OBJWITHOUTMAIN := $(filter-out src/main.o src/check.o,$(OBJ))
 
-build: music-server music-check test
+build: music-check test
 
-music-server: $(OBJWITHOUTMAIN) src/main.o
-	$(CC) $(CCFLAGS) -o music-server $^ $(LDFLAGS)
-
-music-check: $(OBJWITHOUTMAIN) src/check.o
+music-check: $(OBJWITHOUTMAIN) src/main.o
 	$(CC) $(CCFLAGS) -o music-check $^ $(LDFLAGS)
 
 test: $(OBJWITHOUTMAIN) $(TESTOBJ)

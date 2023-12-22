@@ -1,57 +1,27 @@
+#include "log.h"
+
+#include <mpg123.h>
+
 #include <assert.h>
 #include <mpg123.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
+#include <stdio.h>
 #include <dirent.h>
 
 #include "errors.h"
-#include "httpget.h"
-#include "library.h"
 #include "log.h"
-#include "my_data.h"
-#include "player.h"
-#include "playlist.h"
-#include "playlist_manager.h"
-#include "streams.h"
 #include "string_utils.h"
 #include "timing.h"
-#include "web.h"
-
-#ifdef USE_RASP_PI
-#	include "raspbpi.h"
-#endif
+#include "sds.h"
 
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "id3.h"
 #include "my_malloc.h"
-
-void ignore_singal_init()
-{
-	// Ignore these signals
-	signal( SIGPIPE, SIG_IGN );
-}
-
-PlaylistItem* get_random_track( PlaylistItem* p )
-{
-	int num_tracks = 0;
-	for( PlaylistItem* q = p; q != NULL; q = q->next ) {
-		num_tracks++;
-	}
-	if( num_tracks == 0 ) {
-		return NULL;
-	}
-	int r = rand() % num_tracks;
-	for( ; r > 0; r-- ) {
-		p = p->next;
-	}
-	return p;
-}
 
 int main( int argc, char** argv, char** env )
 {
@@ -64,135 +34,85 @@ int main( int argc, char** argv, char** env )
 	LOG_DEBUG( "here-debug" );
 	LOG_TRACE( "here-trace" );
 
-	bool auto_play = false;
-	char* auto_start = (char*)sdsnew( getenv( "MUSIC_AUTO_PLAY" ) );
-	if( strcmp( auto_start, "1" ) == 0 ) {
-		auto_play = true;
-	}
+	//int res;
+	//ID3Cache* cache;
 
-	ignore_singal_init();
+	//if( argc != 3 ) {
+	//	printf( "%s <albums path> <id3 cache path>\n", argv[0] );
+	//	return 1;
+	//}
+	//char* music_path = argv[1];
+	//char* id3_cache_path = argv[2];
 
-	srand( get_current_time_ms() );
-
-	int res;
-	Player player;
-	ID3Cache* cache;
-
-	if( argc != 5 ) {
-		printf( "%s <albums path> <streams path> <playlist path> <id3 cache path>\n", argv[0] );
-		return 1;
-	}
-	char* music_path = argv[1];
-	char* streams_path = argv[2];
-	char* playlist_path = argv[3];
-	char* id3_cache_path = argv[4];
-
-	trim_suffix( music_path, "/" );
-
-	init_player( &player, music_path );
-
-#ifdef USE_RASP_PI
-	if( init_rasp_pi( &player ) ) {
-		return 1;
-	}
-#endif
-
-	res = id3_cache_new( &cache, id3_cache_path, player.mh );
-	if( res ) {
-		LOG_ERROR( "failed to load cache" );
-		return 1;
-	}
-
-	StreamList stream_list;
-	stream_list.p = NULL;
-	res = parse_streams( streams_path, &stream_list );
-	if( res ) {
-		LOG_CRITICAL( "failed to load streams" );
-		return 1;
-	}
-
-	Library library;
-	res = library_init( &library, cache, music_path );
-	if( res ) {
-		LOG_CRITICAL( "err=d failed to init album list", res );
-		return 1;
-	}
-	res = library_load( &library );
-	if( res ) {
-		LOG_CRITICAL( "err=d failed to load albums", res );
-		return 1;
-	}
-
-	res = id3_cache_save( cache );
-	if( res ) {
-		LOG_ERROR( "err=d path=s failed to save id3 cache", res, cache->path );
-	}
-
-	LOG_DEBUG( "calling manager init" );
-	PlaylistManager playlist_manager;
-	playlist_manager_init( &playlist_manager, playlist_path, &library, &stream_list );
-	player.playlist_manager = &playlist_manager;
-
-	LOG_DEBUG( "calling load" );
-	res = playlist_manager_load( &playlist_manager );
-	if( res ) {
-		LOG_WARN( "failed to load playlist" );
-	}
-	LOG_DEBUG( "load done" );
-
-	Playlist* default_playlist = playlist_manager.root;
-	if( !default_playlist ) {
-		LOG_ERROR( "no playlists" );
-		return 1;
-	}
-
-	LOG_DEBUG( "p=p starting", default_playlist );
-	PlaylistItem* p = get_random_track( default_playlist->root );
-	if( p ) {
-		player_change_track( &player, p, TRACK_CHANGE_IMMEDIATE );
-		if( auto_play ) {
-			player_set_playing( &player, true );
-		}
-	}
-
-	res = start_player( &player );
-	if( res ) {
-		LOG_CRITICAL( "failed to start player" );
-		return 1;
-	}
-
-	MyData my_data = {&player, &library, &playlist_manager, &stream_list};
-
-	WebHandlerData web_handler_data;
-
-	res = init_http_server_data( &web_handler_data, &my_data );
-	if( res ) {
-		LOG_ERROR( "failed to init http server" );
-		return 2;
-	}
-
-	int playlist_version = playlist_manager_checksum( &playlist_manager );
-	update_metadata_web_clients( false, NULL, playlist_version, (void*)&web_handler_data );
-
-	res = player_add_metadata_observer(
-		&player, &update_metadata_web_clients, (void*)&web_handler_data );
-	if( res ) {
-		LOG_ERROR( "failed to register observer" );
-		return 1;
-	}
-
-	//if( playlist_manager.root ) {
-	//	PlaylistItem *x = playlist_manager.root->root;
-	//	player_change_track( &player, x, TRACK_CHANGE_IMMEDIATE );
+	//mpg123_init();
+	//mpg123_handle* mh = mpg123_new( NULL, NULL );
+	//if( mh == NULL ) {
+	//	LOG_ERROR( "failed to create new mpg123 handler" );
+	//	return 1;
 	//}
 
-	LOG_DEBUG( "running server" );
-	res = start_http_server( &web_handler_data );
-	if( res ) {
-		LOG_CRITICAL( "failed to start http server" );
-		return 2;
-	}
+	//trim_suffix( music_path, "/" );
 
-	LOG_DEBUG( "done" );
+	//res = id3_cache_new( &cache, id3_cache_path, mh );
+	//if( res ) {
+	//	LOG_ERROR( "failed to load cache" );
+	//	return 1;
+	//}
+
+	//Library library;
+	//res = library_init( &library, cache, music_path );
+	//if( res ) {
+	//	LOG_CRITICAL( "err=d failed to init album list", res );
+	//	return 1;
+	//}
+	//res = library_load( &library );
+	//if( res ) {
+	//	LOG_CRITICAL( "err=d failed to load albums", res );
+	//	return 1;
+	//}
+
+	//res = id3_cache_save( cache );
+	//if( res ) {
+	//	LOG_ERROR( "err=d path=s failed to save id3 cache", res, cache->path );
+	//}
+
+	//const char* issues_path = "/tmp/music-check-issues";
+	//FILE* fp = fopen( issues_path, "wb" );
+
+	//Track* track;
+	//struct sglib_Track_iterator it;
+	//for( track = sglib_Track_it_init_inorder( &it, library.root_track ); track != NULL;
+	//	 track = sglib_Track_it_next( &it ) ) {
+	//	if( track->album == NULL ) {
+	//		fprintf( fp, "NULL_ALBUM %s\n", track->path );
+	//		LOG_ERROR( "path=s album is NULL", track->path );
+	//		continue;
+	//	}
+	//	if( track->album->artist == NULL ) {
+	//		fprintf( fp, "NULL_ARTIST %s\n", track->path );
+	//		LOG_ERROR( "path=s album artist is NULL", track->path );
+	//		continue;
+	//	}
+	//	if( track->album->release_date == 0 ) {
+	//		fprintf( fp, "MISSING_YEAR %s\n", track->path );
+	//		LOG_WARN( "path=s track is missing year", track->path );
+	//	}
+	//	if( strlen( track->album->album ) == 0 ) {
+	//		fprintf( fp, "MISSING_ALBUM %s\n", track->path );
+	//		LOG_WARN( "path=s track is missing album title", track->path );
+	//	}
+	//	if( strlen( track->album->artist->artist ) == 0 ) {
+	//		fprintf( fp, "MISSING_ARTIST %s\n", track->path );
+	//		LOG_WARN( "path=s track is missing artist", track->path );
+	//	}
+	//	if( strlen( track->title ) == 0 ) {
+	//		fprintf( fp, "MISSING_TITLE %s\n", track->path );
+	//		LOG_WARN( "path=s track is missing title", track->path );
+	//	}
+	//}
+
+	//fclose( fp );
+	//LOG_INFO( "path=s wrote issues out", issues_path );
+
 	return 0;
 }
