@@ -22,7 +22,7 @@
 		LOG( LOG_LEVEL_TRACE, "TRACE", __FILE__, __LINE__, fmt, ##args )
 #else
 #	define LOG_TRACE( fmt, args... )                                                              \
-		{}
+		{ }
 #endif // DEBUG_BUILD
 
 #define LOG( level_num, level_str, file, line, fmt, args... )                                      \

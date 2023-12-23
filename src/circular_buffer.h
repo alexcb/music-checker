@@ -50,4 +50,4 @@ int buffer_timedlock( CircularBuffer* buffer );
 int buffer_unlock( CircularBuffer* buffer );
 int buffer_lock( CircularBuffer* buffer );
 
-void buffer_lock_with_warning( CircularBuffer* buffer, const char *msg );
+void buffer_lock_with_warning( CircularBuffer* buffer, const char* msg );

@@ -374,7 +374,7 @@ void sdsIncrLen( sds s, int incr )
 	case SDS_TYPE_64: {
 		SDS_HDR_VAR( 64, s );
 		assert( ( incr >= 0 && sh->alloc - sh->len >= (uint64_t)incr ) ||
-				( incr < 0 && sh->len >= ( uint64_t )( -incr ) ) );
+				( incr < 0 && sh->len >= (uint64_t)( -incr ) ) );
 		len = ( sh->len += incr );
 		break;
 	}

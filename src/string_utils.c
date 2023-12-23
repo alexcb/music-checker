@@ -69,7 +69,7 @@ void str_to_upper( char* s )
 
 int32_t parse_date_to_epoch_days( const char* s )
 {
-	struct tm tm = {0};
+	struct tm tm = { 0 };
 
 	if( strptime( s, "%Y-%m-%d", &tm ) != NULL ) {
 		// pass

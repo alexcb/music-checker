@@ -26,7 +26,7 @@ int testRunner( TEST_FUNCTION testFunction )
 {
 	int err;
 	counter = 0;
-	err = ( testFunction )();
+	err = (testFunction)();
 	if( err ) {
 		printf( "NG (now %d ok...)\n", counter );
 		return 1;

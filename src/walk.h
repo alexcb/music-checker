@@ -1,2 +1,2 @@
 
-int walk( const char *path );
+int walk( const char* path );

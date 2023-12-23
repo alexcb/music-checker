@@ -1,9 +1,9 @@
 #include "walk.h"
 
-#include "log.h"
-#include "string_utils.h"
-#include "sds.h"
 #include "errors.h"
+#include "log.h"
+#include "sds.h"
+#include "string_utils.h"
 
 #include <dirent.h>
 #include <errno.h>
@@ -14,8 +14,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-
-int walk( const char * path )
+int walk( const char* path )
 {
 	int error_code = 0;
 	struct dirent* de;
@@ -33,7 +32,6 @@ int walk( const char * path )
 			LOG_INFO( "path=s t=d found mp3", de->d_name, de->d_type );
 			continue;
 		}
-
 
 		if( de->d_type != DT_DIR || strcmp( de->d_name, "." ) == 0 ||
 			strcmp( de->d_name, ".." ) == 0 ) {
@@ -56,4 +54,3 @@ error:
 
 	return error_code;
 }
-

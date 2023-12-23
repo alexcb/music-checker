@@ -83,8 +83,8 @@ static GtkTargetEntry* drag_target;
 #define TEXT_X_LIBRARY_ITEM "text/x-library-item"
 
 static const GtkTargetEntry queuelike_targets[] = {
-	{TEXT_X_PLAYLIST_ITEM, GTK_TARGET_SAME_WIDGET, 0},
-	{TEXT_X_LIBRARY_ITEM, GTK_TARGET_SAME_APP | GTK_TARGET_OTHER_WIDGET, 1},
+	{ TEXT_X_PLAYLIST_ITEM, GTK_TARGET_SAME_WIDGET, 0 },
+	{ TEXT_X_LIBRARY_ITEM, GTK_TARGET_SAME_APP | GTK_TARGET_OTHER_WIDGET, 1 },
 };
 
 static const char* css =
@@ -1170,7 +1170,7 @@ void trigger_playlist_refresh()
 	fetch_playlist_in_worker_thread( NULL );
 }
 
-const char* playing_text[] = {"Paused", "Playing"};
+const char* playing_text[] = { "Paused", "Playing" };
 int update_currently_playing_status()
 {
 	int playlist_index = -1;

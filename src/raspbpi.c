@@ -14,7 +14,7 @@
 // switch must remain in this state for at least this many ms
 #	define MIN_CONSTANT_STATE_MS 10
 
-#define HOLD_TIME_MS 400
+#	define HOLD_TIME_MS 400
 
 struct gpio_switch
 {
@@ -79,28 +79,28 @@ struct gpio_switch switches[] = {
 // see http://wiringpi.com/pins/ for pinouts
 #	ifdef KITCHEN
 	// switch
-	{2, 0, 0, 0, 0, 0, 0, 0, &do_pause, &do_play, NULL},
+	{ 2, 0, 0, 0, 0, 0, 0, 0, &do_pause, &do_play, NULL },
 
 	// left button
-	{0, 0, 0, 0, 0, 0, 0, 0, NULL, &next_playlist, &player_say_what},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, NULL, &next_playlist, &player_say_what },
 
 	// middle button
-	{8, 0, 0, 0, 0, 0, 0, 0, NULL, &next_album, &player_say_what},
+	{ 8, 0, 0, 0, 0, 0, 0, 0, NULL, &next_album, &player_say_what },
 
 	// right button
-	{9, 0, 0, 0, 0, 0, 0, 0, NULL, &next_track, &player_say_what}
+	{ 9, 0, 0, 0, 0, 0, 0, 0, NULL, &next_track, &player_say_what }
 #	else
 	// right up
-	{9, 0, 0, 0, 0, 0, 0, 0, NULL, &next_album, NULL},
+	{ 9, 0, 0, 0, 0, 0, 0, 0, NULL, &next_album, NULL },
 
 	//right down
-	{8, 0, 0, 0, 0, 0, 0, 0, NULL, &next_track, NULL},
+	{ 8, 0, 0, 0, 0, 0, 0, 0, NULL, &next_track, NULL },
 
 	// left up
-	{0, 0, 0, 0, 0, 0, 0, 0, NULL, &next_playlist, NULL},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, NULL, &next_playlist, NULL },
 
 	// left down
-	{2, 0, 0, 0, 0, 0, 0, 0, NULL, &player_pause, &player_say_what}
+	{ 2, 0, 0, 0, 0, 0, 0, 0, NULL, &player_pause, &player_say_what }
 #	endif // KITCHEN
 };
 int num_switches = sizeof( switches ) / sizeof( struct gpio_switch );
@@ -209,14 +209,15 @@ void* gpio_input_thread_run( void* p )
 					}
 					switches[i].held_called = 0;
 				}
-			} else {
+			}
+			else {
 				//if( i == 3 ) {
 				//	LOG_INFO("switch=d elapsed=l here", current_state, switches[i].changed_at);
 				//}
 				if( !current_state && switches[i].changed_at && !switches[i].held_called ) {
 					uint64_t elapsed_time = now_t - switches[i].changed_at;
 					//LOG_INFO("switch=d elapsed=l on hold?", i, elapsed_time);
-					if( elapsed_time >= HOLD_TIME_MS  ) {
+					if( elapsed_time >= HOLD_TIME_MS ) {
 						if( switches[i].on_hold ) {
 							LOG_INFO( "switch=d on_hold", i );
 							switches[i].on_hold( player );
@@ -250,7 +251,7 @@ int init_rasp_pi( Player* player )
 
 	uint64_t now_t = get_current_time_ms();
 	if( now_t == 0 ) {
-		now_t = 1;// must be set
+		now_t = 1; // must be set
 	}
 
 	for( int i = 0; i < num_switches; i++ ) {

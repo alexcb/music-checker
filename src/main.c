@@ -3,18 +3,18 @@
 #include <mpg123.h>
 
 #include <assert.h>
+#include <dirent.h>
 #include <mpg123.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <dirent.h>
 
 #include "errors.h"
 #include "log.h"
+#include "sds.h"
 #include "string_utils.h"
 #include "timing.h"
-#include "sds.h"
 
 #include <fcntl.h>
 #include <signal.h>
@@ -31,7 +31,7 @@ int main( int argc, char** argv, char** env )
 	char* log_level = (char*)sdsnew( getenv( "LOG_LEVEL" ) );
 	str_to_upper( log_level );
 	set_log_level_from_env_variables( (const char**)env );
-	
+
 	LOG_INFO( "mp3-check starting" );
 	//LOG_DEBUG( "here-debug" );
 	//LOG_TRACE( "here-trace" );
@@ -53,7 +53,7 @@ int main( int argc, char** argv, char** env )
 		return 1;
 	}
 
-	int err = walk(music_path );
+	int err = walk( music_path );
 	if( err != 0 ) {
 		LOG_ERROR( "path=%s failed to walk", music_path );
 		return 1;

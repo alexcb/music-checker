@@ -238,7 +238,7 @@ int open_connection( mpg123_string* host, mpg123_string* port )
 	}
 	else /* Just use the IP. */
 		if( ( server.sin_addr.s_addr = inet_addr( host->p ) ) == INADDR_NONE )
-		return -1;
+			return -1;
 
 	server.sin_port = htons( atoi( port->p ) );
 	server.sin_family = AF_INET;
@@ -286,12 +286,11 @@ int open_connection( mpg123_string* host, mpg123_string* port )
 	freeaddrinfo( addrlist );
 #endif
 
-
 	// set a tight(er) timeout
 	struct timeval tv;
 	tv.tv_sec = 60; // timeout after 60 second (5 was too tight)
 	tv.tv_usec = 0;
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+	setsockopt( sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv );
 
 	return sock; /* Hopefully, that's an open socket to talk with. */
 }

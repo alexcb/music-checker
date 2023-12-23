@@ -20,7 +20,7 @@ test: $(OBJWITHOUTMAIN) $(TESTOBJ)
 
 .PHONY: reformat
 reformat:
-	find -regex '.*/.*\.\(c\|h\)$$' -exec clang-format-7 -i {} \;
+	find -regex '.*/.*\.\(c\|h\)$$' -exec clang-format -i {} \;
 
 .PHONY: run
 run: music-server

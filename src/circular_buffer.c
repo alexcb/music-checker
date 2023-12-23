@@ -52,7 +52,7 @@ void wake_up_get_buffer_write( CircularBuffer* buffer )
 	//LOG_DEBUG("setting wake_up_get_buffer_write true");
 	buffer_lock_with_warning( buffer, "wake_up_get_buffer_write lock timedout" );
 	//pthread_mutex_lock( &buffer->lock );
-	
+
 	buffer->wake_up_get_buffer_write = true;
 	pthread_mutex_unlock( &buffer->lock );
 	pthread_cond_signal( &buffer->space_free );
@@ -355,17 +355,17 @@ int buffer_lock( CircularBuffer* buffer )
 int buffer_timedlock( CircularBuffer* buffer )
 {
 	struct timespec tspec;
-	clock_gettime(CLOCK_REALTIME, &tspec);
+	clock_gettime( CLOCK_REALTIME, &tspec );
 	tspec.tv_sec += 1;
 	//tspec.tv_nsec = 100;
 	return pthread_mutex_timedlock( &buffer->lock, &tspec );
 }
 
-void buffer_lock_with_warning( CircularBuffer* buffer, const char *msg )
+void buffer_lock_with_warning( CircularBuffer* buffer, const char* msg )
 {
 	int res;
 	int warned = 0;
-	for(;;) {
+	for( ;; ) {
 		res = buffer_timedlock( buffer );
 		if( res == 0 ) {
 			return;
