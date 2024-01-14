@@ -22,31 +22,9 @@ test: $(OBJWITHOUTMAIN) $(TESTOBJ)
 reformat:
 	find -regex '.*/.*\.\(c\|h\)$$' -exec clang-format -i {} \;
 
-.PHONY: run
-run: music-server
-	sudo mount -a
-	LOG_LEVEL=DEBUG HTTP_PORT=7777 ./music-server /media/nugget_share/music/alex-beet ~/streams ~/playlists ~/music-id3-cache
-	#./music-server /media/nugget_share/music/alex-beet ~/streams ~/playlists ~/music-id3-cache
-
-.PHONY: random
-random:
-	tools/random-playlist --host localhost:7777
-
-.PHONY: pause
-pause:
-	curl -XPOST localhost:7777/pause
-
-.PHONY: next-track
-next-track:
-	curl -XPOST localhost:7777/next-track
-
-.PHONY: prev-track
-prev-track:
-	curl -XPOST localhost:7777/prev-track
-
 # To obtain object files
 %.o: %.c
 	$(CC) -c $(CCFLAGS) $< -o $@
 
 clean:
-	rm -f music-server music-check test $(OBJ) $(TESTOBJ)
+	rm -f music-check test $(OBJ) $(TESTOBJ)
