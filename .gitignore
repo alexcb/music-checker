@@ -21,17 +21,10 @@
 *.dylib
 
 # Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-music-check
+mp3decode
+mp3walk
 test
 
 # Debug files
 *.dSYM/
 *.su
-
-my123

@@ -2,21 +2,22 @@ CC=gcc
 CCFLAGS=-std=gnu11 -Wall -Werror -I./src -DDEBUG_BUILD=1
 LDFLAGS=-lmpg123 -lpthread -lm
 
-SRC=$(wildcard src/**/*.c src/*.c)
-OBJ=$(SRC:%.c=%.o)
+DECODESRC=$(wildcard src/mp3decode/*.c)
+DECODEOBJ=$(DECODESRC:%.c=%.o)
 
-TESTSRC=$(wildcard tests/**/*.c tests/*.c)
-TESTOBJ=$(TESTSRC:%.c=%.o)
+WALKSRC=$(wildcard src/mp3walk/*.c)
+WALKOBJ=$(WALKSRC:%.c=%.o)
 
-OBJWITHOUTMAIN := $(filter-out src/main.o src/check.o,$(OBJ))
+COMMONSRC=$(wildcard src/common/*.c)
+COMMONOBJ=$(COMMONSRC:%.c=%.o)
 
-build: music-check test
+build: mp3decode mp3walk
 
-music-check: $(OBJWITHOUTMAIN) src/main.o
-	$(CC) $(CCFLAGS) -o music-check $^ $(LDFLAGS)
+mp3decode: $(DECODEOBJ) $(COMMONOBJ) src/mp3decode/main.o
+	$(CC) $(CCFLAGS) -o mp3decode $^ $(LDFLAGS)
 
-test: $(OBJWITHOUTMAIN) $(TESTOBJ)
-	$(CC) $(CCFLAGS) -o test $^ $(LDFLAGS)
+mp3walk: $(WALKOBJ) $(COMMONOBJ) src/mp3walk/main.o
+	$(CC) $(CCFLAGS) -o mp3walk $^ $(LDFLAGS)
 
 .PHONY: reformat
 reformat:
@@ -27,4 +28,4 @@ reformat:
 	$(CC) -c $(CCFLAGS) $< -o $@
 
 clean:
-	rm -f music-check test $(OBJ) $(TESTOBJ)
+	rm -f music-check $(DECODEOBJ) $(WALKOBJ) $(COMMONOBJ)

@@ -3,7 +3,7 @@
 
 #include "tests.h"
 
-#include "log.h"
+#include "common/log.h"
 
 unsigned int testManyFunction( void )
 {
