@@ -17,43 +17,159 @@
 #include <sys/types.h>
 #include <wait.h>
 
+typedef int ( *line_callback_func )( const char* l );
+
+bool process_output( int fd, char* buf, size_t buf_size, size_t* buf_n, line_callback_func cb )
+{
+	bool keep_reading = false;
+	int count;
+	count = read( fd, buf + *buf_n, buf_size - *buf_n - 1 );
+	if( count > 0 ) {
+		keep_reading = true;
+		*buf_n += count;
+
+		for( ;; ) {
+			char* eol = memchr( buf, '\n', *buf_n );
+			if( eol ) {
+				size_t line_len = eol - buf;
+				*eol = '\0';
+				cb( buf );
+				//printf( "-> %s\n", buf );
+				memmove( buf, eol + 1, buf_size - line_len - 1 );
+				*buf_n -= ( line_len + 1 );
+			}
+			else {
+				break;
+			}
+		}
+	}
+	return keep_reading;
+}
+
+int stderr_cb( const char* l )
+{
+	if( strstr( l, "dequantization failed" ) ) {
+		printf( "*** BAD ***\n" );
+	}
+	printf( "=> %s\n", l );
+	return 0;
+}
+
+int stdout_cb( const char* l )
+{
+	printf( "-> %s\n", l );
+	return 0;
+}
+
 int check_file( const char* path )
 {
 
 	char* path2 = strdup( path );
-	pid_t child_pid;
-	char* argv[] = { "cool-program-name", path2, (char*)0 };
-	char* envv[] = { (char*)0 };
-	int status = -1;
-	int s;
 
-	status = posix_spawnp( &child_pid, "./mp3decode", NULL, NULL, argv, envv );
-	if( status != 0 ) {
-		LOG_ERROR( "spawn failed" );
-		return 1;
+	int pipe_stdout[2]; // 0 -> read, 1 -> write
+	int pipe_stderr[2]; // 0 -> read, 1 -> write
+
+	pipe( pipe_stdout );
+	pipe( pipe_stderr );
+
+	pid_t child_pid = fork();
+	if( !child_pid ) {
+		// child process
+
+		// close reading side of pipe
+		close( pipe_stderr[0] );
+		close( pipe_stdout[0] );
+
+		char* argv[] = { "./mp3decode", path2, (char*)0 };
+		//char* argv[] = { "/bin/sh", "-c", "hostname", (char*)0 };
+
+		dup2( pipe_stdout[1], STDOUT_FILENO );
+		close( pipe_stdout[1] );
+
+		dup2( pipe_stderr[1], STDERR_FILENO );
+		close( pipe_stderr[1] );
+
+		execv( argv[0], argv );
+		exit( 1 );
 	}
+	else if( child_pid > 0 ) {
+		size_t stdout_buffer_n = 0;
+		size_t stderr_buffer_n = 0;
+		size_t stdout_buffer_size = 10240;
+		size_t stderr_buffer_size = 10240;
+		char stdout_buffer[stdout_buffer_size];
+		char stderr_buffer[stderr_buffer_size];
+		printf( "waiting for pid %d\n", child_pid );
 
-	do {
-		s = waitpid( child_pid, &status, WUNTRACED | WCONTINUED );
-		if( s == -1 ) {
-			LOG_ERROR( "waitpid failed" );
-			return 1;
-		}
+		// close writing side of pipe
+		close( pipe_stderr[1] );
+		close( pipe_stdout[1] );
 
-		if( WIFEXITED( status ) ) {
-			printf( "exited, status=%d\n", WEXITSTATUS( status ) );
-		}
-		else if( WIFSIGNALED( status ) ) {
-			printf( "killed by signal %d\n", WTERMSIG( status ) );
-		}
-		else if( WIFSTOPPED( status ) ) {
-			printf( "stopped by signal %d\n", WSTOPSIG( status ) );
-		}
-		else if( WIFCONTINUED( status ) ) {
-			printf( "continued\n" );
-		}
-	} while( !WIFEXITED( status ) && !WIFSIGNALED( status ) );
+		fcntl( pipe_stderr[0],
+			   F_SETFL,
+			   fcntl( pipe_stderr[0], F_GETFL ) | O_NONBLOCK ); // TODO error check
+		fcntl( pipe_stdout[0],
+			   F_SETFL,
+			   fcntl( pipe_stdout[0], F_GETFL ) | O_NONBLOCK ); // TODO error check
 
+		// Read from child’s stdout
+		bool child_exited = false;
+		for( ;; ) {
+			bool keep_reading = false;
+
+			if( process_output( pipe_stderr[0],
+								stderr_buffer,
+								stderr_buffer_size,
+								&stderr_buffer_n,
+								stderr_cb ) ) {
+				keep_reading = true;
+			}
+
+			if( process_output( pipe_stdout[0],
+								stdout_buffer,
+								stdout_buffer_size,
+								&stdout_buffer_n,
+								stdout_cb ) ) {
+				keep_reading = true;
+			}
+
+			if( child_exited ) {
+				if( keep_reading ) {
+					continue;
+				}
+				break;
+			}
+
+			int status = 0;
+			int s = waitpid( child_pid, &status, WNOHANG );
+			if( s == 0 ) {
+				// process is still running
+				continue;
+			}
+			else if( s < 0 ) {
+				// waitpid error
+				break;
+			}
+			printf( "process %d returned with status %d\n", s, status );
+
+			if( WIFEXITED( status ) ) {
+				printf( "exited, status=%d\n", WEXITSTATUS( status ) );
+			}
+			else if( WIFSIGNALED( status ) ) {
+				printf( "killed by signal %d\n", WTERMSIG( status ) );
+			}
+			else if( WIFSTOPPED( status ) ) {
+				printf( "stopped by signal %d\n", WSTOPSIG( status ) );
+			}
+			else if( WIFCONTINUED( status ) ) {
+				printf( "continued\n" );
+			}
+			break;
+		}
+	}
+	else {
+		printf( "fork failed %d\n", child_pid );
+	}
 	return 0;
 }
 

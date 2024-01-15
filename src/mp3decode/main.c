@@ -66,5 +66,6 @@ int main( int argc, char** argv, char** env )
 		return 1;
 	}
 
+	printf( "good\nbye\n" );
 	return 0;
 }
