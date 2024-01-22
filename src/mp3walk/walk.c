@@ -48,9 +48,9 @@ bool process_output( int fd, char* buf, size_t buf_size, size_t* buf_n, line_cal
 
 int stderr_cb( const char* l )
 {
-	if( strstr( l, "dequantization failed" ) ) {
-		printf( "*** BAD ***\n" );
-	}
+	//if( strstr( l, "dequantization failed" ) ) {
+	//	printf( "*** BAD ***\n" );
+	//}
 	printf( "=> %s\n", l );
 	return 0;
 }
@@ -201,8 +201,10 @@ int walk( const char* path )
 		s = sdscatfmt( s, "%s/%s", path, de->d_name );
 
 		if( de->d_type == DT_REG && has_suffix( de->d_name, ".mp3" ) ) {
+			printf( "checking %s\n", s );
 			error_code = check_file( s );
 			if( error_code ) {
+				printf( "error code %d\n", error_code );
 				goto error;
 			}
 			continue;
