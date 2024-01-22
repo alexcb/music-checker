@@ -28,17 +28,22 @@ int check_file( const char* path )
 {
 	bool done;
 	int res;
+	int err=0;
 	int fd = -1;
+mpg123_handle* mh = NULL;
+
 	LOG_INFO( "path=s checking file", path );
 	fd = open( path, O_RDONLY );
 	if( fd < 0 ) {
-		LOG_ERROR( "unable to open" );
+		LOG_ERROR( "path=s unable to open", path );
+		err=1;
 		goto done;
 	}
 
-	mpg123_handle* mh = g_check_file_mh;
+	mh = g_check_file_mh;
 
 	if( mpg123_open_fd( mh, fd ) != MPG123_OK ) {
+		err=1;
 		goto done;
 	}
 
@@ -86,9 +91,11 @@ int check_file( const char* path )
 	}
 
 done:
-	mpg123_close( mh );
+	if( mh ) {
+		mpg123_close( mh );
+	}
 	if( fd >= 0 ) {
 		close( fd );
 	}
-	return 0;
+	return err;
 }

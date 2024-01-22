@@ -1,7 +1,6 @@
 #include "log.h"
 
-#include "my_malloc.h"
-
+#include <stdlib.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -10,7 +9,7 @@
 
 #define LOG_BUF_SIZE 1024
 
-int menoetius_log_level = LOG_LEVEL_INFO;
+int g_log_level = LOG_LEVEL_INFO;
 
 struct log_context
 {
@@ -364,8 +363,8 @@ void _log( int level_num, const char* fmt, ... )
 
 void set_log_level( int level )
 {
+	g_log_level = level;
 	LOG_INFO( "level=d setting log level", level );
-	menoetius_log_level = level;
 }
 
 void set_log_level_from_string( const char* s )
@@ -407,7 +406,7 @@ void set_log_level_from_env_variables( const char** env )
 
 log_context* new_log_context( log_context* ctx, const char* fmt, ... )
 {
-	log_context* new_ctx = (log_context*)my_malloc( sizeof( log_context ) );
+	log_context* new_ctx = (log_context*)malloc( sizeof( log_context ) );
 	new_ctx->next = ctx;
 
 	va_list arguments;
@@ -428,7 +427,7 @@ void free_log_context( log_context* ctx )
 	log_context* p;
 	while( ctx != NULL ) {
 		p = ctx->next;
-		my_free( ctx );
+		free( ctx );
 		ctx = p;
 	}
 }

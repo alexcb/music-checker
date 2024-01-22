@@ -51,6 +51,20 @@ bool trim_suffix( char* s, const char* suffix )
 	return true;
 }
 
+bool trim_padding_right( char* s, const char* padding_chars )
+{
+	size_t len = strlen( s );
+	bool trimmed = false;
+	for(int i = len-1; i >= 0; i-- ) {
+		if( strchr(padding_chars, s[i] ) == NULL ) {
+			break;
+		}
+		s[i] = '\0';
+		trimmed = true;
+	}
+	return trimmed;
+}
+
 const char* empty_str = "";
 const char* null_to_empty( char* s )
 {

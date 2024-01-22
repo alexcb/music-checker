@@ -12,4 +12,9 @@ will compile:
 
 ## Usage
 
-    ./music-check <path to directory> <cache>
+    ./mp3walk <path to dir>
+
+### Individual files
+
+    ./mp3decode <path>
+

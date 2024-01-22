@@ -63,7 +63,6 @@ int stdout_cb( const char* l )
 
 int check_file( const char* path )
 {
-
 	char* path2 = strdup( path );
 
 	int pipe_stdout[2]; // 0 -> read, 1 -> write
@@ -80,16 +79,16 @@ int check_file( const char* path )
 		close( pipe_stderr[0] );
 		close( pipe_stdout[0] );
 
-		char* argv[] = { "./mp3decode", path2, (char*)0 };
-		//char* argv[] = { "/bin/sh", "-c", "hostname", (char*)0 };
-
 		dup2( pipe_stdout[1], STDOUT_FILENO );
 		close( pipe_stdout[1] );
 
 		dup2( pipe_stderr[1], STDERR_FILENO );
 		close( pipe_stderr[1] );
 
-		execv( argv[0], argv );
+		char* argv[] = { "./mp3decode", path2, (char*)0 };
+		char* env[] = { "LOG_LEVEL=error", (char*)0 };
+
+		execve( argv[0], argv, env );
 		exit( 1 );
 	}
 	else if( child_pid > 0 ) {
@@ -99,7 +98,7 @@ int check_file( const char* path )
 		size_t stderr_buffer_size = 10240;
 		char stdout_buffer[stdout_buffer_size];
 		char stderr_buffer[stderr_buffer_size];
-		printf( "waiting for pid %d\n", child_pid );
+		LOG_TRACE("child=d waiting for process", child_pid);
 
 		// close writing side of pipe
 		close( pipe_stderr[1] );
@@ -150,10 +149,15 @@ int check_file( const char* path )
 				// waitpid error
 				break;
 			}
-			printf( "process %d returned with status %d\n", s, status );
+			//printf( "process %d returned with status %d\n", s, status );
 
 			if( WIFEXITED( status ) ) {
-				printf( "exited, status=%d\n", WEXITSTATUS( status ) );
+				int exit_code = WEXITSTATUS( status );
+				if( exit_code == 0 ) {
+					return 0;
+				}
+				LOG_ERROR( "path=s exitcode=d check failed", path, exit_code );
+				return 1;
 			}
 			else if( WIFSIGNALED( status ) ) {
 				printf( "killed by signal %d\n", WTERMSIG( status ) );

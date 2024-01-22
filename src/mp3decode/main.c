@@ -8,7 +8,6 @@
 
 #include "common/errors.h"
 #include "common/log.h"
-#include "common/my_malloc.h"
 #include "common/sds.h"
 #include "common/string_utils.h"
 #include "common/timing.h"
@@ -24,18 +23,7 @@
 
 int main( int argc, char** argv, char** env )
 {
-	my_malloc_init();
-
-	char* log_level = (char*)sdsnew( getenv( "LOG_LEVEL" ) );
-	str_to_upper( log_level );
 	set_log_level_from_env_variables( (const char**)env );
-
-	LOG_INFO( "music-check starting" );
-	//LOG_DEBUG( "here-debug" );
-	//LOG_TRACE( "here-trace" );
-
-	//int res;
-	//ID3Cache* cache;
 
 	if( argc != 2 ) {
 		const char* prog_name = "mp3decode";
@@ -62,10 +50,11 @@ int main( int argc, char** argv, char** env )
 
 	int err = check_file( mp3_path );
 	if( err != 0 ) {
-		LOG_ERROR( "path=%s failed to walk", mp3_path );
+		LOG_ERROR( "path=s err=d mp3decode failed", mp3_path, err );
 		return 1;
 	}
 
-	printf( "good\nbye\n" );
+	// uncomment to test mp3walk's handling of line parsing
+	// printf( "good\nbye\nworld\n" );
 	return 0;
 }

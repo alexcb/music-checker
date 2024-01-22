@@ -27,7 +27,7 @@
 
 #define LOG( level_num, level_str, file, line, fmt, args... )                                      \
 	do {                                                                                           \
-		if( level_num <= menoetius_log_level ) {                                                   \
+		if( level_num <= g_log_level ) {                                                           \
 			_log( level_num,                                                                       \
 				  "level=s pid=d file=s line=d " fmt,                                              \
 				  level_str,                                                                       \
@@ -42,7 +42,7 @@
 #define LOG_ERROR_UNEXPECTED_CHAR 1
 #define LOG_ERROR_OUT_OF_SPACE 2
 
-extern int menoetius_log_level;
+extern int g_log_level;
 
 void _log( int level_num, const char* fmt, ... );
 
