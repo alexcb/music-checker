@@ -4,6 +4,7 @@ A tool for checking the integrity of mp3 files
 
 ## Quick Start
 
+    apt install -y libmpg123-dev
     make
 
 will compile:
